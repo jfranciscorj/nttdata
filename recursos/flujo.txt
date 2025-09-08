@@ -1,0 +1,15 @@
+[ HTTP Request JSON ]
+      ↓
+UserController (API)
+      ↓
+CreateUserUseCase (Core)
+      ↓
+UserRepositoryPort (Interface)
+      ↓
+UserRepositoryAdapter (Infra)
+      ↓
+UserJpaRepository (Infra, Spring Data)
+      ↓
+UserEntity + PhoneEntity (JPA)
+      ↓
+[ Database ]

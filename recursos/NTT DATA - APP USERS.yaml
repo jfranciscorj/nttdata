@@ -1,0 +1,259 @@
+openapi: 3.0.3
+info:
+  title: APP USERS
+  description: MS que permite administrar usuarios.
+  version: 1.0.0
+  
+servers:
+  - url: 'http://localhost:9001'
+    description: Servidor local
+
+paths:
+  /v1/users:
+    post:
+      summary: Crea un usuario
+      operationId: createUser
+      tags:
+        - Users
+      description: Crea un usuario
+      parameters:
+        - in: header
+          name: Authorization
+          schema:
+            type: string
+          required: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                nombre:
+                  type: string
+                  description: Nombre completo
+                  example: "Juan Francisco Ramírez Jofré"
+                correo:
+                  type: string
+                  description: Correo electronico.
+                  example: "ju.ramirezj@gmail.com"
+                clave:
+                  type: string
+                  description: Clave de usuario
+                  example: "Juanfra.25"
+                telelfonos:
+                  type: array
+                  description: ""
+                  items:
+                    type: object 
+                    properties:
+                      numero:
+                        type: string
+                        description: numero telefonico
+                        example: "50263838"
+                      codigoCiudad:
+                        type: string
+                        description: Codigo de ciudad
+                        example: "9"
+                      codigoPais:
+                        type: string
+                        description: Codigo de Pais
+                        example: "56"
+      responses:
+        '201':
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ok'
+        '204':
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/noContent'                
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/badrequest'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/unauthorized'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/forbidden'                
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/notfound'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/internal'
+components:
+  
+  # 1) Define the security scheme type (HTTP bearer)
+  securitySchemes:
+    bearerAuth: # arbitrary name for the security scheme
+      type: http
+      scheme: bearer
+      bearerFormat: JWT # optional, arbitrary value for documentation purposes
+
+  # 2) Apply the security globally to all operations
+  security:
+    - bearerAuth: [] # use the same name as above 
+
+  schemas:
+    internal:
+      type: object
+      properties:
+        statusCode:
+          type: integer
+          description: "Código de respuesta HTTP."
+          example: 500
+        message:
+          type: string
+          description: "Mensaje de descripción"
+          example: "Internal Server Error"
+        info:
+          type: string
+          description: "Mensaje de descripción de transacción"
+          example: "Error"
+        level:
+          type: string
+          description: "Tipo de error"
+          example: "Tecnico"   
+    notfound:
+      type: object
+      properties:
+        statusCode:
+          type: integer
+          description: "Código de respuesta HTTP."
+          example: 404
+        message:
+          type: string
+          description: "Mensaje de descripción"
+          example: "Recurso no encontrado"
+        info:
+          type: string
+          description: "Mensaje de descripción de transacción"
+          example: "Error"
+        level:
+          type: string
+          description: "Tipo de error"
+          example: "Funcional" 
+    badrequest:
+      type: object
+      properties:
+        statusCode:
+          type: integer
+          description: "Código de respuesta HTTP."
+          example: 400
+        message:
+          type: string
+          description: "Mensaje de descripción"
+          example: "El campo nombre no puede estar vacio"
+        info:
+          type: string
+          description: "Mensaje de descripción de transacción"
+          example: "Error"
+        level:
+          type: string
+          description: "Tipo de error"
+          example: "Funcional"
+    unauthorized:
+      type: object
+      properties:
+        statusCode:
+          type: integer
+          description: "Código de respuesta HTTP."
+          example: 401
+        message:
+          type: string
+          description: "Mensaje de descripción"
+          example: "No autorizado"
+        info:
+          type: string
+          description: "Mensaje de descripción de transacción"
+          example: "Error"
+        level:
+          type: string
+          description: "Tipo de error"
+          example: "Funcional"  
+    forbidden:
+      type: object
+      properties:
+        statusCode:
+          type: integer
+          description: "Código de respuesta HTTP."
+          example: 403
+        message:
+          type: string
+          description: "Mensaje de descripción"
+          example: "Sin permisos para acceder al recurso"
+        info:
+          type: string
+          description: "Mensaje de descripción de transacción"
+          example: "Error"
+        level:
+          type: string
+          description: "Tipo de error"
+          example: "Funcional"  
+    noContent:
+      type: object
+      properties:
+        statusCode:
+          type: integer
+          description: "Código de respuesta HTTP."
+          example: 204
+        message:
+          type: string
+          description: "Mensaje de descripción"
+          example: "No encontrado"
+        info:
+          type: string
+          description: "Mensaje de descripción de transacción"
+          example: "Error"
+        level:
+          type: string
+          description: "Tipo de error"
+          example: "Funcional"           
+    ok:
+        type: object
+        properties:
+          id:
+            type: string
+            description: "Id de usuario."
+            example: "d5e6f865-995c-402a-88c0-c703a677f14f"
+          creado:
+            type: string
+            description: "Fecha de creación"
+            example: "2025-09-08T07:36:20.5141412"
+          modificado:
+            type: string
+            description: "Fecha de ultima modificacion"
+            example: "2025-09-08T07:36:20.5141412"
+          ultimoLogin:
+            type: string
+            description: "Fecha de ultimo unicio de sesion"
+            example: "2025-09-08T07:36:20.5141412" 
+          token:
+              type: string
+              description: "Token de acceso "
+              example: "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJqdS5yYW1pcmV6akBnbWFpbC5jb20iLCJpYXQiOjE3NTczMjc3ODAsImV4cCI6MTc1NzMyODY4MH0.d9laHt53iMlpMMWrzhytXdal53gUMggif_ohrVGEJxI"
+          activo:
+            type: boolean
+            description: "Indica si el usuario esta activo."
+            example: true           
