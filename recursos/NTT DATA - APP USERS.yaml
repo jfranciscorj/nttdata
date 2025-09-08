@@ -1,27 +1,23 @@
 openapi: 3.0.3
 info:
-  title: APP USERS
-  description: MS que permite administrar usuarios.
+  title: User API
   version: 1.0.0
-  
+  description: API for managing users with JWT authentication
 servers:
-  - url: 'http://localhost:9001'
-    description: Servidor local
+  - url: http://localhost:9001
+    description: Local server
+tags:
+  - name: Users
+    description: Operations related to user management
+  - name: Auth
+    description: Authentication and login
 
 paths:
-  /v1/users:
+  /v1/auth/login:
     post:
-      summary: Crea un usuario
-      operationId: createUser
       tags:
-        - Users
-      description: Crea un usuario
-      parameters:
-        - in: header
-          name: Authorization
-          schema:
-            type: string
-          required: true
+        - Auth
+      summary: Authenticate user and return JWT token
       requestBody:
         required: true
         content:
@@ -29,37 +25,32 @@ paths:
             schema:
               type: object
               properties:
-                nombre:
+                email:
                   type: string
-                  description: Nombre completo
-                  example: "Juan Francisco Ramírez Jofré"
-                correo:
+                  example: juan@example.com
+                password:
                   type: string
-                  description: Correo electronico.
-                  example: "ju.ramirezj@gmail.com"
-                clave:
-                  type: string
-                  description: Clave de usuario
-                  example: "Juanfra.25"
-                telelfonos:
-                  type: array
-                  description: ""
-                  items:
-                    type: object 
-                    properties:
-                      numero:
-                        type: string
-                        description: numero telefonico
-                        example: "50263838"
-                      codigoCiudad:
-                        type: string
-                        description: Codigo de ciudad
-                        example: "9"
-                      codigoPais:
-                        type: string
-                        description: Codigo de Pais
-                        example: "56"
+                  example: "MySecret123*"
       responses:
+        "200":
+          description: Successful login
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    description: "UUID de usuario"
+                    example: "d5e6f865-995c-402a-88c0-c703a677f14f"
+                  correo:
+                    type: string
+                    description: "Correo electronico."
+                    example: "ju.ramirezj@gmail.com"                    
+                  token:
+                    type: string
+                    description: "Token de acceso "
+                    example: "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJqdS5yYW1pcmV6akBnbWFpbC5jb20iLCJpYXQiOjE3NTczMjc3ODAsImV4cCI6MTc1NzMyODY4MH0.d9laHt53iMlpMMWrzhytXdal53gUMggif_ohrVGEJxI"
         '201':
           description: Ok
           content:
@@ -102,20 +93,631 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/internal'
+  /v1/users:
+    post:
+      tags:
+        - Users
+      summary: Create new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateUserRequest"
+      responses:
+        "201":
+          description: User created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreateUserResponse"               
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/badrequest'               
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/notfound'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/internal'
+    get:
+      tags:
+        - Users
+      summary: Get all users
+      parameters:
+        - in: header
+          name: Authorization
+          schema:
+            type: string
+          required: true
+      responses:
+        "200":
+          description: List of users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/GetUserResponse"             
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/badrequest'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/unauthorized'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/forbidden'                
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/notfound'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/internal'
+
+  /v1/users/{id}:
+    get:
+      tags:
+        - Users
+      summary: Get user by ID
+      parameters:
+        - name: Authorization
+          in: header
+          required: true
+          schema:
+            type: string
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: User found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetUserResponse"
+        '204':
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/noContent'                
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/badrequest'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/unauthorized'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/forbidden'                
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/notfound'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/internal'
+
+    put:
+      tags:
+        - Users
+      summary: Update user (full replace)
+      parameters:
+        - in: header
+          name: Authorization
+          schema:
+            type: string
+          required: true
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateUserRequest"
+      responses:
+        "200":
+          description: User updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetUserResponse"
+        '204':
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/noContent'                
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/badrequest'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/unauthorized'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/forbidden'                
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/notfound'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/internal'
+
+    patch:
+      tags:
+        - Users
+      summary: Partial update user
+      parameters:
+        - in: header
+          name: Authorization
+          schema:
+            type: string
+          required: true
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: User updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetUserResponse"
+        '204':
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/noContent'                
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/badrequest'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/unauthorized'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/forbidden'                
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/notfound'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/internal'
+
+    delete:
+      tags:
+        - Users
+      summary: Delete user by ID
+      parameters:
+        - in: header
+          name: Authorization
+          schema:
+            type: string
+          required: true
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: User deleted               
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/badrequest'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/unauthorized'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/forbidden'                
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/notfound'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/internal'
+
+  /v1/users/{id}/enable:
+    patch:
+      tags:
+        - Users
+      summary: Enable user
+      parameters:
+        - in: header
+          name: Authorization
+          schema:
+            type: string
+          required: true
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: User enabled
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetUserResponse"
+        '204':
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/noContent'                
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/badrequest'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/unauthorized'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/forbidden'                
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/notfound'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/internal'
+
+  /v1/users/{id}/disable:
+    patch:
+      tags:
+        - Users
+      summary: Disable user
+      parameters:
+        - in: header
+          name: Authorization
+          schema:
+            type: string
+          required: true
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: User disabled
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetUserResponse"
+        '204':
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/noContent'                
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/badrequest'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/unauthorized'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/forbidden'                
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/notfound'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/internal'
+
+  /v1/users/{id}/status:
+    get:
+      tags:
+        - Users
+      summary: Get user active status
+      parameters:
+        - in: header
+          name: Authorization
+          schema:
+            type: string
+          required: true
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: User status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  activo:
+                    type: boolean
+                    example: true
+        '204':
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/noContent'                
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/badrequest'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/unauthorized'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/forbidden'                
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/notfound'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/internal'
+
 components:
-  
-  # 1) Define the security scheme type (HTTP bearer)
   securitySchemes:
-    bearerAuth: # arbitrary name for the security scheme
+    bearerAuth: 
       type: http
       scheme: bearer
-      bearerFormat: JWT # optional, arbitrary value for documentation purposes
+      bearerFormat: JWT
 
-  # 2) Apply the security globally to all operations
   security:
-    - bearerAuth: [] # use the same name as above 
+    - bearerAuth: [] 
 
   schemas:
+    CreateUserRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          example: Juan Francisco
+        email:
+          type: string
+          example: juan@example.com
+        password:
+          type: string
+          example: "MySecret123*"
+        phones:
+          type: array
+          items:
+            $ref: "#/components/schemas/PhoneRequest"
+
+    PhoneRequest:
+      type: object
+      properties:
+        number:
+          type: integer
+          example: 987654321
+        cityCode:
+          type: integer
+          example: 9
+        countryCode:
+          type: integer
+          example: 56
+
+    CreateUserResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        creado:
+          type: string
+          format: date-time
+        modificado:
+          type: string
+          format: date-time
+        ultimoLogin:
+          type: string
+          format: date-time
+        token:
+          type: string
+        activo:
+          type: boolean
+
+    GetUserResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        email:
+          type: string
+        phones:
+          type: array
+          items:
+            $ref: "#/components/schemas/PhoneResponse"
+        creado:
+          type: string
+          format: date-time
+        modificado:
+          type: string
+          format: date-time
+        ultimoLogin:
+          type: string
+          format: date-time
+        activo:
+          type: boolean
+
+    PhoneResponse:
+      type: object
+      properties:
+        number:
+          type: integer
+        cityCode:
+          type: integer
+        countryCode:
+          type: integer
+
+    UpdateUserRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+        phones:
+          type: array
+          items:
+            $ref: "#/components/schemas/PhoneRequest"
+
     internal:
       type: object
       properties:
@@ -256,4 +858,4 @@ components:
           activo:
             type: boolean
             description: "Indica si el usuario esta activo."
-            example: true           
+            example: true  
