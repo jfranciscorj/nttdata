@@ -93,9 +93,11 @@ public class UserServiceImpl implements CreateUserUseCase, DeleteUserUseCase, Ge
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
 
         Boolean update = false;
-        // Solo actualiza los campos presentes en el JSON
+
         if (fields.containsKey("nombre")) {
             update = true;
+            validator.validateFieldIsEmpty((String) fields.get("nombre"), "nombre");
+            validator.validateNombreFormat((String) fields.get("nombre"));
             user.setName((String) fields.get("nombre"));
         }
         if (fields.containsKey("correo")) {
@@ -103,10 +105,14 @@ public class UserServiceImpl implements CreateUserUseCase, DeleteUserUseCase, Ge
             if (userRepository.findByEmail((String) fields.get("correo")).isPresent()) {
                 throw new IllegalArgumentException("El correo ya está registrado");
             }
+            validator.validateFieldIsEmpty((String) fields.get("correo"), "correo");
+            validator.validateEmailFormat((String) fields.get("correo"));
             user.setEmail((String) fields.get("correo"));
         }
         if (fields.containsKey("clave")) {
             update = true;
+            validator.validateFieldIsEmpty((String) fields.get("clave"), "clave");
+            validator.validateClave((String) fields.get("clave"));
             user.setPassword(passwordEncoder.encode((String) fields.get("clave")));
         }
 
@@ -123,15 +129,27 @@ public class UserServiceImpl implements CreateUserUseCase, DeleteUserUseCase, Ge
         UserModel user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
 
+        validator.validateFieldIsEmpty(request.getName(), "nombre");
+        validator.validateNombreFormat(request.getName());
         user.setName(request.getName());
 
         if (userRepository.findByEmail(request.getEmail()).isPresent()) {
             throw new IllegalArgumentException("El correo ya está registrado");
         }
 
+        validator.validateFieldIsEmpty(request.getEmail(), "correo");
+        validator.validateEmailFormat(request.getEmail());
         user.setEmail(request.getEmail());
+
+        validator.validateFieldIsEmpty(request.getPassword(), "contraseña");
+        validator.validateClave(request.getPassword());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
+
+        if(!user.getPhones().isEmpty()){
+            validator.validatorTelefono(user);
+        }
         user.setPhones(request.getPhones());
+        user.setActive(request.isActive());
 
         return userRepository.save(user);
     }
@@ -152,9 +170,7 @@ public class UserServiceImpl implements CreateUserUseCase, DeleteUserUseCase, Ge
         UserModel user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
 
-        System.out.println("usuario desactivado");
         user.setActive(false);
-        System.out.println("active: " + user.isActive());
 
         LocalDateTime now = LocalDateTime.now();
         user.setModifiedAt(now);
@@ -166,9 +182,8 @@ public class UserServiceImpl implements CreateUserUseCase, DeleteUserUseCase, Ge
     public UserModel enableStatusUserCase(UUID id) {
         UserModel user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
-        System.out.println("usuario activado");
+
         user.setActive(true);
-        System.out.println("active: " + user.isActive());
 
         LocalDateTime now = LocalDateTime.now();
         user.setModifiedAt(now);
