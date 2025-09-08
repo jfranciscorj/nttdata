@@ -1,0 +1,179 @@
+package com.nttdata.app.core.application.usecase.impl;
+
+import com.nttdata.app.api.controller.UserController;
+import com.nttdata.app.core.application.usecase.CreateUserUseCase;
+import com.nttdata.app.core.application.usecase.DeleteUserUseCase;
+import com.nttdata.app.core.application.usecase.GetUserUseCase;
+import com.nttdata.app.core.application.usecase.UpdateUserUseCase;
+import com.nttdata.app.core.application.validator.RequestInputValidator;
+import com.nttdata.app.core.domain.user.UserModel;
+import com.nttdata.app.core.port.UserRepositoryPort;
+import com.nttdata.app.infrastructure.security.JwtUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
+
+@Service
+public class UserServiceImpl implements CreateUserUseCase, DeleteUserUseCase, GetUserUseCase, UpdateUserUseCase {
+
+    private static final Logger logger = LoggerFactory.getLogger(UserServiceImpl.class);
+
+    private final UserRepositoryPort userRepository;
+    private final JwtUtil jwtUtil;
+    private final PasswordEncoder passwordEncoder;
+    private final RequestInputValidator validator;
+
+    public UserServiceImpl(UserRepositoryPort userRepository,
+                           JwtUtil jwtUtil,
+                           PasswordEncoder passwordEncoder,
+                           RequestInputValidator validator) {
+        this.userRepository = userRepository;
+        this.jwtUtil = jwtUtil;
+        this.passwordEncoder = passwordEncoder;
+        this.validator = validator;
+    }
+
+    @Override
+    public UserModel createUserUseCase(UserModel user) {
+
+        validator.validateFieldIsEmpty(user.getName(), "nombre");
+        validator.validateNombreFormat(user.getName());
+        validator.validateFieldIsEmpty(user.getEmail(), "correo");
+        validator.validateEmailFormat(user.getEmail());
+
+        if (userRepository.findByEmail(user.getEmail()).isPresent()) {
+            throw new IllegalArgumentException("El correo ya está registrado");
+        }
+
+        validator.validateFieldIsEmpty(user.getPassword(), "clave");
+        validator.validateClave(user.getPassword());
+
+        if(!user.getPhones().isEmpty()){
+            validator.validatorTelefono(user);
+        }
+
+        String token = jwtUtil.generateToken(user.getEmail());
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        user.setToken(token);
+
+        return userRepository.save(user);
+    }
+
+    @Override
+    public void deleteUserUseCase(UUID id) {
+        userRepository.deleteById(id);
+    }
+
+    @Override
+    public List<UserModel> getAllUserUserCase() {
+
+        List<UserModel> users = userRepository.findAll();
+
+        return users;
+    }
+
+    @Override
+    public Optional<UserModel> getUserByIdUserCase(UUID id) {
+
+        Optional<UserModel> user = userRepository.findById(id);
+
+        return user;
+    }
+
+    @Override
+    public UserModel updatePartialUserCase(UUID id, Map<String, Object> fields) {
+        UserModel user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+
+        Boolean update = false;
+        // Solo actualiza los campos presentes en el JSON
+        if (fields.containsKey("nombre")) {
+            update = true;
+            user.setName((String) fields.get("nombre"));
+        }
+        if (fields.containsKey("correo")) {
+            update = true;
+            if (userRepository.findByEmail((String) fields.get("correo")).isPresent()) {
+                throw new IllegalArgumentException("El correo ya está registrado");
+            }
+            user.setEmail((String) fields.get("correo"));
+        }
+        if (fields.containsKey("clave")) {
+            update = true;
+            user.setPassword(passwordEncoder.encode((String) fields.get("clave")));
+        }
+
+        if(update){
+            LocalDateTime now = LocalDateTime.now();
+            user.setModifiedAt(now);
+        }
+
+        return userRepository.save(user);
+    }
+
+    @Override
+    public UserModel updateUserUseCase(UUID id, UserModel request) {
+        UserModel user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+
+        user.setName(request.getName());
+
+        if (userRepository.findByEmail(request.getEmail()).isPresent()) {
+            throw new IllegalArgumentException("El correo ya está registrado");
+        }
+
+        user.setEmail(request.getEmail());
+        user.setPassword(passwordEncoder.encode(request.getPassword()));
+        user.setPhones(request.getPhones());
+
+        return userRepository.save(user);
+    }
+
+    @Override
+    public Boolean getStatus(UUID id) {
+
+        Optional<UserModel> user = userRepository.findById(id);
+        if(user.isEmpty()){
+            throw new IllegalArgumentException("Usuario no encontrado.");
+        }
+
+        return user.get().isActive();
+    }
+
+    @Override
+    public UserModel disableStatusUserCase(UUID id) {
+        UserModel user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+
+        System.out.println("usuario desactivado");
+        user.setActive(false);
+        System.out.println("active: " + user.isActive());
+
+        LocalDateTime now = LocalDateTime.now();
+        user.setModifiedAt(now);
+
+        return userRepository.save(user);
+    }
+
+    @Override
+    public UserModel enableStatusUserCase(UUID id) {
+        UserModel user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+        System.out.println("usuario activado");
+        user.setActive(true);
+        System.out.println("active: " + user.isActive());
+
+        LocalDateTime now = LocalDateTime.now();
+        user.setModifiedAt(now);
+
+        return userRepository.save(user);
+    }
+
+}
