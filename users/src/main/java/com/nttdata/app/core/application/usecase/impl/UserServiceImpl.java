@@ -9,11 +9,14 @@ import com.nttdata.app.core.application.validator.RequestInputValidator;
 import com.nttdata.app.core.domain.user.UserModel;
 import com.nttdata.app.core.port.UserRepositoryPort;
 import com.nttdata.app.infrastructure.security.JwtUtil;
+import org.apache.catalina.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import javax.swing.text.html.parser.Entity;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -102,12 +105,16 @@ public class UserServiceImpl implements CreateUserUseCase, DeleteUserUseCase, Ge
         }
         if (fields.containsKey("correo")) {
             update = true;
-            if (userRepository.findByEmail((String) fields.get("correo")).isPresent()) {
-                throw new IllegalArgumentException("El correo ya está registrado");
-            }
-            validator.validateFieldIsEmpty((String) fields.get("correo"), "correo");
-            validator.validateEmailFormat((String) fields.get("correo"));
-            user.setEmail((String) fields.get("correo"));
+
+//            if(!user.getEmail().equals(fields.containsKey("correo"))){
+//                if (userRepository.findByEmail((String) fields.get("correo")).isPresent()) {
+//                    throw new IllegalArgumentException("El correo ya está registrado");
+//                }
+//            }
+
+//            validator.validateFieldIsEmpty((String) fields.get("correo"), "correo");
+//            validator.validateEmailFormat((String) fields.get("correo"));
+//            user.setEmail((String) fields.get("correo"));
         }
         if (fields.containsKey("clave")) {
             update = true;
@@ -133,13 +140,13 @@ public class UserServiceImpl implements CreateUserUseCase, DeleteUserUseCase, Ge
         validator.validateNombreFormat(request.getName());
         user.setName(request.getName());
 
-        if (userRepository.findByEmail(request.getEmail()).isPresent()) {
-            throw new IllegalArgumentException("El correo ya está registrado");
-        }
+//        if (userRepository.findByEmail(request.getEmail()).isPresent()) {
+//            throw new IllegalArgumentException("El correo ya está registrado");
+//        }
 
-        validator.validateFieldIsEmpty(request.getEmail(), "correo");
-        validator.validateEmailFormat(request.getEmail());
-        user.setEmail(request.getEmail());
+//        validator.validateFieldIsEmpty(request.getEmail(), "correo");
+//        validator.validateEmailFormat(request.getEmail());
+//        user.setEmail(request.getEmail());
 
         validator.validateFieldIsEmpty(request.getPassword(), "contraseña");
         validator.validateClave(request.getPassword());
@@ -149,20 +156,17 @@ public class UserServiceImpl implements CreateUserUseCase, DeleteUserUseCase, Ge
             validator.validatorTelefono(user);
         }
         user.setPhones(request.getPhones());
-        user.setActive(request.isActive());
+//        user.setActive(request.isActive());
 
         return userRepository.save(user);
     }
 
     @Override
-    public Boolean getStatus(UUID id) {
+    public Optional<UserModel> getStatus(UUID id) {
 
         Optional<UserModel> user = userRepository.findById(id);
-        if(user.isEmpty()){
-            throw new IllegalArgumentException("Usuario no encontrado.");
-        }
 
-        return user.get().isActive();
+        return user;
     }
 
     @Override

@@ -15,7 +15,7 @@ public class RequestInputValidator {
     public void validateFieldIsEmpty(String fieldValue, String fieldName) {
         System.out.println("campo: " + fieldName + ", valor: " + fieldValue);
         if (fieldValue == null || fieldValue.trim().isEmpty()) {
-            throw new IllegalArgumentException("El "+ fieldName.toLowerCase() + " no puede estar vacío.");
+            throw new IllegalArgumentException("The "+ fieldName.toLowerCase() + " can't be empty.");
         }
     }
 
@@ -38,19 +38,19 @@ public class RequestInputValidator {
             System.out.println("numero: " + phone.getNumber()+ ", ciudad: " + phone.getCityCode() + ", pais: " + phone.getCountryCode());
 
             if (phone.getNumber() == null) {
-                throw new IllegalArgumentException("El campo numero no puede estar vacío.");
+                throw new IllegalArgumentException("The numero can't be empty.");
             }
 
             validateOnlyNumber(phone.getNumber(), "numero");
 
             if (phone.getCityCode() == null) {
-                throw new IllegalArgumentException("El campo codigo_ciudad no puede estar vacío.");
+                throw new IllegalArgumentException("The codigoCiudad can't be empty.");
             }
 
             validateOnlyNumber(phone.getCityCode(), "codigo_ciudad");
 
             if (phone.getCountryCode() == null) {
-                throw new IllegalArgumentException("El campo codigo_pais no puede estar vacío.");
+                throw new IllegalArgumentException("The codigoCiudad can't be empty.");
             }
 
             validateOnlyNumber(phone.getCountryCode(), "codigo_pais");

@@ -9,5 +9,5 @@ import java.util.UUID;
 public interface GetUserUseCase {
     List<UserModel> getAllUserUserCase();
     Optional<UserModel> getUserByIdUserCase(UUID id);
-    Boolean getStatus(UUID id);
+    Optional<UserModel> getStatus(UUID id);
 }

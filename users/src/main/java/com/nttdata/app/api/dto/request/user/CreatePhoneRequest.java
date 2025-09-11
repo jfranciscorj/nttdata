@@ -10,15 +10,15 @@ import lombok.Setter;
 @Setter
 public class CreatePhoneRequest {
 
-    @NotBlank(message = "El campo numero es obligatorio.")
+    @NotBlank(message = "The number is mandatory.")
     @JsonProperty("numero")
     private String number;
 
-    @NotBlank(message = "El campo codigoCiudad es obligatorio.")
+    @NotBlank(message = "The codigoCiudad is mandatory.")
     @JsonProperty("codigoCiudad")
     private String cityCode;
 
-    @NotBlank(message = "El campo codigoPais es obligatorio.")
+    @NotBlank(message = "The codigoPais is mandatory.")
     @JsonProperty("codigoPais")
     private String countryCode;
 

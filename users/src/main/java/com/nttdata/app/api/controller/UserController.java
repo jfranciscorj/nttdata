@@ -122,7 +122,11 @@ public class UserController {
                                                        @RequestHeader("Authorization") String token) {
         System.out.println("Controller Get User Status");
         GetStatusResponse status = new GetStatusResponse();
-        status.setActive(getUserUseCase.getStatus(id));
+        Optional<UserModel> user = getUserUseCase.getStatus(id);
+        if(user.isEmpty()){
+            return ResponseEntity.noContent().build();
+        }
+        status.setActive(user.get().isActive());
         return ResponseEntity.ok().body(status);
     }
 }

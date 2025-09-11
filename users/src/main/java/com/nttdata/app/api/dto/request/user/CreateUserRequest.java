@@ -8,15 +8,15 @@ import java.util.List;
 
 public class CreateUserRequest {
 
-    @NotBlank(message = "El campo nombre es obligatorio.")
+    @NotBlank(message = "The nombre is mandatory.")
     @JsonProperty("nombre")
     private String name;
 
-    @NotBlank(message = "El campo correo es obligatorio.")
+    @NotBlank(message = "The correo is mandatory.")
     @JsonProperty("correo")
     private String email;
 
-    @NotBlank(message = "El campo contraseña es obligatorio.")
+    @NotBlank(message = "The contraseña is mandatory.")
     @JsonProperty("contraseña")
     private String password;
 
