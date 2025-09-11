@@ -6,8 +6,6 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 import lombok.Setter;
 
-@Getter
-@Setter
 public class CreatePhoneRequest {
 
     @NotBlank(message = "The number is mandatory.")
@@ -24,5 +22,29 @@ public class CreatePhoneRequest {
 
     public PhoneModel toDomain() {
         return new PhoneModel(number, cityCode, countryCode);
+    }
+
+    public String getNumber() {
+        return number;
+    }
+
+    public void setNumber(String number) {
+        this.number = number;
+    }
+
+    public String getCityCode() {
+        return cityCode;
+    }
+
+    public void setCityCode(String cityCode) {
+        this.cityCode = cityCode;
+    }
+
+    public String getCountryCode() {
+        return countryCode;
+    }
+
+    public void setCountryCode(String countryCode) {
+        this.countryCode = countryCode;
     }
 }
