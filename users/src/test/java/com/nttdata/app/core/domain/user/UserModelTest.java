@@ -77,5 +77,14 @@ class UserModelTest {
         assertEquals("New Name", user.getName());
     }
 
+    @Test
+    void testConstructor() {
+        UserModel user = new UserModel("juan Ramirez", "ju.ramirezj@gmai.com", "Juanfra2+");
+
+        assertEquals("juan Ramirez", user.getName());
+        assertEquals("ju.ramirezj@gmai.com", user.getEmail());
+        assertEquals("Juanfra2+", user.getPassword());
+    }
+
 
 }
